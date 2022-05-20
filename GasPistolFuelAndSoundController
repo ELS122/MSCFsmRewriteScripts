@@ -1,0 +1,48 @@
+// this is the fsm on the object PLAYER/Pivot/AnimPivot/Camera/FPSCamera/FPSCamera/Fuel/Pivot/hand/Armature/Bone/Bone_001/Pistol/Pistol 98/FuelNozzle
+    
+    public class PistolFuelController : MonoBehaviour
+    {
+        public PlayMakerFSM fsm;
+        public FsmBool pour;
+        public FsmFloat fuelFlow;
+        public FsmFloat fuel;
+        public FsmGameObject pump;
+        public FsmBool fuelStolen;
+        public void Start()
+        {
+            fsm = GetComponent<PlayMakerFSM>();
+
+            pour = fsm.FsmVariables.FindFsmBool("Pour");
+            fuelFlow = fsm.FsmVariables.FindFsmFloat("FuelFlow");
+            pump = fsm.FsmVariables.FindFsmGameObject("Pump");
+            fuel = pump.Value.GetComponent<PlayMakerFSM>().FsmVariables.FindFsmFloat("Fuel");
+            fuelStolen = (fsm.FsmStates[1].Actions[0] as SetFsmBool).gameObject.GameObject.Value.GetComponent<PlayMakerFSM>().FsmVariables.FindFsmBool("FuelStolen");
+            fsm.enabled = false;
+        }
+        public bool wasPouring;
+
+        public void Update()
+        {
+            if (pour.Value)
+            {
+                if (!wasPouring)
+                {
+                    MasterAudio.PlaySound3DAtTransform("Store", pump.Value.transform, 1f, null, 0f, "fueling_1");
+                    MasterAudio.PlaySound3DAtTransform("Store", pump.Value.transform, 1f, null, 0.28f, "fueling_2");
+                }
+                wasPouring = true;
+
+                fuel.Value += fuelFlow.Value * Time.deltaTime;
+
+                //if(smoking)
+                //explode or stuff
+            }
+            else if (wasPouring)
+            {
+                wasPouring = false;
+                MasterAudio.StopAllOfSound("Store");
+                MasterAudio.PlaySound3DAtTransform("Store", pump.Value.transform, 1f, null, 0f, "fueling_3");
+                fuelStolen.Value = true;
+            }
+        }
+    }
